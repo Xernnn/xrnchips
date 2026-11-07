@@ -24,6 +24,16 @@ Kotlin and Jetpack Compose. Minimum Android 8.0.
 
 [docs/feature-spec.md](docs/feature-spec.md) describes every screen and rule.
 
+## Screenshots
+
+| Start | Play | Table |
+| --- | --- | --- |
+| ![Start screen](docs/screenshots/start.png) | ![Play screen: stacks, blinds, rules and seats](docs/screenshots/setup.png) | ![The table during a hand](docs/screenshots/table.png) |
+
+| Raise | Showdown | Results |
+| --- | --- | --- |
+| ![Raise dialog](docs/screenshots/raise.png) | ![Picking the winners of a pot](docs/screenshots/showdown.png) | ![Results and settle-up](docs/screenshots/results.png) |
+
 ## Build and test
 
 ```sh
@@ -44,6 +54,7 @@ The sound effects are generated, not recorded. To change them, edit and rerun
 - `.../ui`: the screens. `TableModel` paces the steps the table takes by itself and keeps what
   Undo can go back to.
 - `docs/icon`: the app icon's sources.
+- `docs/screenshots`: the pictures above, taken on an emulator at phone size.
 
 ## Credits
 
