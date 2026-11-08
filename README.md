@@ -1,4 +1,8 @@
-# xrnchips
+<p align="center">
+  <img src="docs/icon/icon.svg" width="72" height="72" alt="">
+</p>
+
+<h1 align="center">xrnchips</h1>
 
 Poker night without the chips. xrnchips keeps the stacks, blinds, bets and pots of a live Texas
 Hold'em game on one Android phone, so the table only needs a deck of cards. The phone is passed
