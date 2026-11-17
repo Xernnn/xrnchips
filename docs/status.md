@@ -4,7 +4,7 @@ Version 0.1.0, 6 November 2026.
 
 ## What has been tested
 
-**Unit tests** (`./gradlew :app:testDebugUnitTest`, 32 tests, all passing).
+**Unit tests** (`./gradlew :app:testDebugUnitTest`, 37 tests, all passing).
 
 - `EngineTest.sessionMatchesTheReference` replays an eight-hand session that was first played on
   the reference app (see below) with the same seats, stacks and moves. The stacks, bets, pots,
@@ -17,8 +17,11 @@ Version 0.1.0, 6 November 2026.
 - The other engine tests cover the raise rule (a short all-in, several that add up, a short bet
   after checks), pot limit, the big blind ante with a stack too short for it, buying back in and
   leaving when broke, a returning player's account, an eight-handed button move, splitting, folded
-  chips in side pots, the minutes clock, the clock before the first deal, and blinds posted from a
-  stack too small for them.
+  chips in side pots, the minutes clock and time away from the app, the clock before the first deal,
+  blinds posted from a stack too small for them, and calls and raises capped at what the others can
+  match.
+- `StoreTest` covers reading the saved games off the opening thread, and saves and deletes made
+  before that read is done.
 - `LedgerTest` covers settling up: that the payments square everyone, that they are as few as
   possible in a case where pairing the biggest loser with the biggest winner is not, 300 random
   sets of results, and money that still adds up after rounding.
