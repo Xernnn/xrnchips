@@ -35,7 +35,7 @@ fun GameState.fold(): GameState {
 /** Checks when there is nothing to call. Otherwise calls, all in if the stack is short. */
 fun GameState.checkOrCall(): GameState {
     val p = actor() ?: return this
-    val need = max(0, currentBet - p.bet)
+    val need = max(0, toMatch(p) - p.bet)
     if (need == 0) {
         return update(p.seat) { it.copy(acted = true, faced = currentBet, last = Act.CHECK) }.turnAfter(p.seat)
     }
@@ -78,7 +78,7 @@ data class Options(
 
 fun GameState.options(): Options? {
     val p = actor() ?: return null
-    val need = max(0, currentBet - p.bet)
+    val need = max(0, toMatch(p) - p.bet)
     return Options(
         check = need == 0,
         call = min(need, p.chips),
@@ -118,7 +118,7 @@ data class RaiseSpec(
 fun GameState.raiseSpec(): RaiseSpec? {
     val p = actor() ?: return null
     if (!mayRaise(p)) return null
-    val need = max(0, currentBet - p.bet)
+    val need = max(0, toMatch(p) - p.bet)
     val stack = p.chips - need
     val most = if (setup.limit == Limit.POT) min(stack, pot + need) else stack
     return RaiseSpec(
@@ -322,12 +322,21 @@ fun GameState.togglePause(): GameState = if (clock() is Clock.Time) copy(paused 
 private fun GameState.actor(): Player? = if (phase == Phase.BETTING) activePlayer else null
 
 /**
- * A raise needs chips beyond the call. A player who has already acted on this street may raise
- * again only if the bet has since gone up by a full raise, in one step or several: short all-ins
- * that add up to less leave them a call or a fold.
+ * A raise needs chips beyond the call, and someone else still in the hand who could put in more than
+ * the bet: against players all in for it or less, it would only come back as a pot of one. A player
+ * who has already acted on this street may raise again only if the bet has since gone up by a full
+ * raise, in one step or several: short all-ins that add up to less leave them a call or a fold.
  */
 private fun GameState.mayRaise(p: Player): Boolean =
-    p.chips > max(0, currentBet - p.bet) && (!p.acted || currentBet - p.faced >= minRaise)
+    p.chips > max(0, toMatch(p) - p.bet) && (!p.acted || currentBet - p.faced >= minRaise) &&
+        players.any { it.seat != p.seat && it.live && it.bet + it.chips > currentBet }
+
+/**
+ * The bet [p] has to match: the street's, or less when nobody else still in the hand can put in that
+ * much. Heads-up against a big blind all in for 5 of 10, the small blind has nothing to call.
+ */
+private fun GameState.toMatch(p: Player): Int =
+    min(currentBet, players.filter { it.seat != p.seat && it.live }.maxOfOrNull { it.bet + it.chips } ?: 0)
 
 private fun GameState.update(seat: Int, change: (Player) -> Player): GameState =
     copy(players = players.map { if (it.seat == seat) change(it) else it })
@@ -349,7 +358,7 @@ private fun seatAfter(seats: List<Int>, seat: Int): Int = seats.minBy { clockwis
 /** Hands the turn to the next player who still owes an action, or closes the betting round. */
 private fun GameState.turnAfter(seat: Int): GameState {
     if (players.count { it.live } <= 1) return copy(phase = Phase.ROUND_END, active = -1)
-    val next = players.filter { it.canAct && (!it.acted || it.bet < currentBet) }.minByOrNull { clockwise(seat, it.seat) }
+    val next = players.filter { it.canAct && (!it.acted || it.bet < toMatch(it)) }.minByOrNull { clockwise(seat, it.seat) }
     return if (next == null) copy(phase = Phase.ROUND_END, active = -1) else copy(phase = Phase.BETTING, active = next.seat)
 }
 

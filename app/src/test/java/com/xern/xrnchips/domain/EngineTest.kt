@@ -195,14 +195,12 @@ class EngineTest {
         assertEquals(500, s.shown("Eve"))
         assertEquals(1558, s.pot)
 
-        // Cat covers the call with one chip to spare: the only raise left is that chip.
+        // Cat covers the call with one chip to spare. The reference offered that chip as a raise,
+        // though Ann and Eve are all in and Dan can't cover the bet: here it is a call or a fold.
         assertEquals("Cat", s.turn())
         assertEquals(1032, s.toCall())
-        s.raiseSpec()!!.let {
-            assertTrue(it.fixed)
-            assertEquals(1, it.min)
-            assertEquals(1, it.max)
-        }
+        assertFalse(s.options()!!.canRaise)
+        assertNull(s.raiseSpec())
         s = s.checkOrCall()
         assertEquals(1, s.chips("Cat"))
         assertEquals(2590, s.pot)
@@ -512,6 +510,56 @@ class EngineTest {
     private fun table(players: Int, short: Map<Int, Int> = emptyMap(), setup: GameSetup = GameSetup()): GameState {
         val game = newGame(setup.copy(players = (0 until players).map { SetupPlayer(it, "P$it") }))
         return game.copy(players = game.players.map { it.copy(chips = short[it.seat] ?: it.chips) }).withDealer(0)
+    }
+
+    @Test
+    fun nobodyCallsOrRaisesPastWhatTheOthersCanMatch() {
+        // Heads-up at 10/5, the big blind all in for 5. The small blind was asked for 5 more and
+        // offered a raise, though nobody could match either: it came back as a side pot of one.
+        var s = table(2, short = mapOf(1 to 5))
+        assertEquals(0, s.active)
+        assertEquals(10, s.currentBet)
+        s.options()!!.let {
+            assertTrue(it.check)
+            assertEquals(0, it.call)
+            assertFalse(it.canRaise)
+        }
+        assertNull(s.raiseSpec())
+        s = s.checkOrCall()
+        assertEquals(Phase.ROUND_END, s.phase)
+        assertEquals(995, s.player(0)!!.chips)
+        s = s.settled()
+        assertEquals(Phase.SHOWDOWN, s.phase)
+        assertEquals(listOf(Pot(10, listOf(0, 1))), s.pots)
+
+        // With a third player who can still bet, the big blind's short post changes nothing.
+        s = table(3, short = mapOf(2 to 5))
+        assertEquals(0, s.active)
+        assertEquals(10, s.options()!!.call)
+        assertTrue(s.options()!!.canRaise)
+        s = s.checkOrCall()
+        assertEquals(1, s.active)
+        assertEquals(5, s.options()!!.call)
+        assertTrue(s.options()!!.canRaise)
+        s = s.raise(100) // the small blind to 110: only seat 0 can answer it
+        assertEquals(0, s.active)
+        assertEquals(100, s.options()!!.call)
+    }
+
+    @Test
+    fun aPlayerFacingAnAllInNobodyElseCanAnswerMayOnlyCallOrFold() {
+        // Heads-up, seat 1 has 300. Both see the flop for 10, then seat 1 bets the 290 left: seat 0
+        // has 990 but nobody could answer a raise.
+        var s = table(2, short = mapOf(1 to 300))
+        s = s.checkOrCall().checkOrCall().settled()
+        assertEquals(Street.FLOP, s.street)
+        assertEquals(1, s.active)
+        s = s.raise(290)
+        assertEquals(0, s.active)
+        assertEquals(290, s.options()!!.call)
+        assertFalse(s.options()!!.canRaise)
+        assertNull(s.raiseSpec())
+        assertEquals(Phase.ROUND_END, s.checkOrCall().phase)
     }
 
     @Test

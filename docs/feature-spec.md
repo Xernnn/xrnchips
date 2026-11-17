@@ -150,6 +150,9 @@ has not acted since the last bet or raise, or has put in less than the bet.
   > more. Those still to act may raise, by at least 30. When it comes back to the first raiser
   > they owe 20 and may only call or fold. Had a third player then gone all in for 75, the first
   > raiser would be facing 35 more than their 40 and could raise again.
+- Nobody is asked to call more, or offered a raise, beyond what someone else still in the hand
+  could put in. Heads-up against a big blind all in for 5 of 10, the small blind has nothing to
+  call; facing players who are all in for the bet or can't cover it, a player may only call or fold.
 - *Fold*: out of the hand. Chips already put in stay in the pot.
 
 The big blind acts last before the flop when nobody raised, and may check or raise.
