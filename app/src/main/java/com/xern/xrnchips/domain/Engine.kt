@@ -291,11 +291,28 @@ fun GameState.clock(): Clock = when {
     else -> Clock.Time(secondsLeft, paused)
 }
 
-/** One second of the level clock. It only runs while a hand is on the table. */
-fun GameState.tick(): GameState {
+/** [seconds] of the level clock, stopping at the level's end. It only runs while a hand is on the table. */
+fun GameState.tick(seconds: Int = 1): GameState {
     val running = setup.unit == DurationUnit.MINUTES && !paused && nextLevel != null && secondsLeft > 0 &&
         phase != Phase.DEALER && phase != Phase.GAME_OVER
-    return if (running) copy(secondsLeft = secondsLeft - 1) else this
+    return if (running && seconds > 0) copy(secondsLeft = max(0, secondsLeft - seconds)) else this
+}
+
+/**
+ * Whole seconds of real time between calls, from a clock that runs on while the phone sleeps, with
+ * what is left of a second carried to the next. A loop that only counted its own one-second waits
+ * lost all the time the phone held it, as when the app was left for another one.
+ */
+class ElapsedSeconds(private var last: Long) {
+    private var carry = 0L
+
+    fun since(now: Long): Int {
+        carry += (now - last).coerceAtLeast(0)
+        last = now
+        val whole = carry / 1000
+        carry %= 1000
+        return whole.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    }
 }
 
 fun GameState.togglePause(): GameState = if (clock() is Clock.Time) copy(paused = !paused) else this

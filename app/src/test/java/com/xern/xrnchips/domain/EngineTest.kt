@@ -482,6 +482,23 @@ class EngineTest {
     }
 
     @Test
+    fun timeAwayFromTheAppCountsOnTheLevelClock() {
+        // Levels of 15 minutes. Someone switches to another app for 5 minutes during a hand: the
+        // phone held the one-second loop the whole time, and the level ran 5 minutes long.
+        val timed = setup.copy(unit = DurationUnit.MINUTES, levels = listOf(BlindLevel(10, 5, duration = 15), BlindLevel(20, 10)))
+        val s = newGame(timed).withDealer(0)
+        val clock = ElapsedSeconds(last = 0)
+        assertEquals(1, clock.since(1_000))
+        assertEquals(0, clock.since(1_400))
+        assertEquals(1, clock.since(2_100)) // the 400 ms left over count with the next
+        assertEquals(300, clock.since(302_500))
+        assertEquals(Clock.Time(600, false), s.tick(300).clock())
+        // Past the end of the level it stops at the next hand, and a paused clock takes none of it.
+        assertEquals(Clock.NextHand, s.tick(20 * 60).clock())
+        assertEquals(Clock.Time(900, true), s.togglePause().tick(300).clock())
+    }
+
+    @Test
     fun theClockAlreadyCountsTheFirstHandBeforeItIsDealt() {
         val waiting = newGame(setup)
         assertEquals(Phase.DEALER, waiting.phase)
