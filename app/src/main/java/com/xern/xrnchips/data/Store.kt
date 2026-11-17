@@ -8,6 +8,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 /** What the + and - buttons and the slider of the raise dialog move by. */
@@ -48,12 +49,12 @@ data class SavedGame(
 
 /**
  * Everything the app keeps, as small JSON files in its private folder: the settings, the Play
- * screen as it was left, one autosave and the games saved by hand. Reads happen once at start;
- * writes go to a single background thread, each to a temporary file that then replaces the old one.
+ * screen as it was left, one autosave and the games saved by hand. Reads happen once at start, the
+ * saved games' on [disk]; writes go to [disk], a single background thread, each to a temporary file
+ * that then replaces the old one.
  */
-class Store(private val dir: File) {
+class Store(private val dir: File, private val disk: Executor = Executors.newSingleThreadExecutor()) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
-    private val disk = Executors.newSingleThreadExecutor()
     private val saveDir = File(dir, "saves").apply { mkdirs() }
 
     private val _settings = MutableStateFlow(read(File(dir, SETTINGS), Settings.serializer()) ?: Settings())
@@ -62,11 +63,17 @@ class Store(private val dir: File) {
     private val _setup = MutableStateFlow(read(File(dir, SETUP), GameSetup.serializer()) ?: GameSetup())
     val setup: StateFlow<GameSetup> = _setup
 
-    /** The autosave first, then the others from newest to oldest. */
-    private val _saves = MutableStateFlow(
-        (saveDir.listFiles().orEmpty().mapNotNull { read(it, SavedGame.serializer()) }).ordered(),
-    )
+    /**
+     * The autosave first, then the others from newest to oldest. Read on [disk], as each holds up to
+     * 40 earlier states and the first frame waited on every one; changes to the list go there too, so
+     * one made before the read is done lands after it.
+     */
+    private val _saves = MutableStateFlow<List<SavedGame>>(emptyList())
     val saves: StateFlow<List<SavedGame>> = _saves
+
+    init {
+        disk.execute { _saves.value = saveDir.listFiles().orEmpty().mapNotNull { read(it, SavedGame.serializer()) }.ordered() }
+    }
 
     fun updateSettings(change: (Settings) -> Settings) {
         _settings.value = change(_settings.value)
@@ -88,19 +95,22 @@ class Store(private val dir: File) {
         put(SavedGame("save-$now", now, state = state, history = history.takeLast(KEPT_HISTORY)))
     }
 
-    fun delete(id: String) {
+    fun delete(id: String) = disk.execute {
         _saves.value = _saves.value.filter { it.id != id }
-        disk.execute { File(saveDir, "$id.json").delete() }
+        File(saveDir, "$id.json").delete()
     }
 
-    fun deleteAll() {
+    fun deleteAll() = disk.execute {
         _saves.value = emptyList()
-        disk.execute { saveDir.listFiles()?.forEach { it.delete() } }
+        saveDir.listFiles()?.forEach { it.delete() }
     }
 
     private fun put(game: SavedGame) {
-        _saves.value = (_saves.value.filter { it.id != game.id } + game).ordered()
-        write(File(saveDir, "${game.id}.json"), SavedGame.serializer(), game)
+        val text = json.encodeToString(SavedGame.serializer(), game)
+        disk.execute {
+            _saves.value = (_saves.value.filter { it.id != game.id } + game).ordered()
+            replace(File(saveDir, "${game.id}.json"), text)
+        }
     }
 
     private fun List<SavedGame>.ordered() = sortedWith(compareByDescending<SavedGame> { it.auto }.thenByDescending { it.savedAt })
@@ -111,14 +121,17 @@ class Store(private val dir: File) {
 
     private fun <T> write(file: File, serializer: KSerializer<T>, value: T) {
         val text = json.encodeToString(serializer, value)
-        disk.execute {
-            runCatching {
-                val temp = File(file.parentFile, file.name + ".tmp")
-                temp.writeText(text)
-                if (!temp.renameTo(file)) {
-                    file.writeText(text)
-                    temp.delete()
-                }
+        disk.execute { replace(file, text) }
+    }
+
+    /** On [disk] only. */
+    private fun replace(file: File, text: String) {
+        runCatching {
+            val temp = File(file.parentFile, file.name + ".tmp")
+            temp.writeText(text)
+            if (!temp.renameTo(file)) {
+                file.writeText(text)
+                temp.delete()
             }
         }
     }
