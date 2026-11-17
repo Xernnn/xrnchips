@@ -49,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -114,22 +113,22 @@ fun SettingsScreen(store: Store, onBack: () -> Unit) {
             IconTap(Icons.Filled.Refresh, "Reset settings", { store.updateSettings { Settings() } }, enabled = settings != Settings())
         }
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            SwitchRow("Vibration", "A light buzz when a button is pressed.", settings.vibration) { on ->
+            SwitchRow("Vibration", settings.vibration) { on ->
                 store.updateSettings { it.copy(vibration = on) }
             }
-            SwitchRow("Double tap", "Check, call and fold also answer to a double tap.", settings.doubleTap) { on ->
+            SwitchRow("Double tap", settings.doubleTap) { on ->
                 store.updateSettings { it.copy(doubleTap = on) }
             }
-            SwitchRow("Sound", "Play the table's sound effects.", settings.sound) { on ->
+            SwitchRow("Sound", settings.sound) { on ->
                 store.updateSettings { it.copy(sound = on) }
             }
-            SwitchRow("Turn sound", "A soft note each time the turn passes to the next player.", settings.turnSound) { on ->
+            SwitchRow("Turn sound", settings.turnSound) { on ->
                 store.updateSettings { it.copy(turnSound = on) }
             }
-            SwitchRow("Stacks in big blinds", "Show each stack as a number of big blinds instead of chips.", settings.stacksInBlinds) { on ->
+            SwitchRow("Stacks in big blinds", settings.stacksInBlinds) { on ->
                 store.updateSettings { it.copy(stacksInBlinds = on) }
             }
-            Choice("Long press duration", "Seconds an action button has to be held before it counts.") {
+            Choice("Long press duration") {
                 Stepper(
                     text = String.format(Locale.US, "%.1f", settings.holdTenths / 10f),
                     onMinus = { store.updateSettings { it.copy(holdTenths = it.holdTenths - 1) } },
@@ -138,7 +137,7 @@ fun SettingsScreen(store: Store, onBack: () -> Unit) {
                     canPlus = settings.holdTenths < Settings.MAX_HOLD_TENTHS,
                 )
             }
-            Choice("Raise slider step size", "What one notch of the slider in the raise dialog is worth.") {
+            Choice("Raise slider step size") {
                 Segmented(
                     listOf("Big blind (BB)", "Small blind (SB)"),
                     selected = if (settings.sliderStep == Step.SB) 1 else 0,
@@ -146,7 +145,7 @@ fun SettingsScreen(store: Store, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Choice("Raise +/− buttons amount", "What the + and − buttons in the raise dialog add or take away.") {
+            Choice("Raise +/− buttons amount") {
                 Segmented(
                     listOf("BB", "SB", "1"),
                     selected = settings.buttonStep.ordinal,
@@ -154,7 +153,7 @@ fun SettingsScreen(store: Store, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Choice("Table style", "The colour of the felt.", divider = false) {
+            Choice("Table style", divider = false) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RoundIcon(Icons.AutoMirrored.Filled.ArrowBack, "Previous", { store.updateSettings { it.copy(felt = (it.felt - 1).mod(felts.size)) } })
                     Spacer(Modifier.width(28.dp))
@@ -177,22 +176,18 @@ fun SettingsScreen(store: Store, onBack: () -> Unit) {
 }
 
 @Composable
-private fun SwitchRow(title: String, about: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f).padding(end = 16.dp)) {
-            Text(title, style = type(19, FontWeight.Bold))
-            Text(about, style = type(15, color = Ink.Dim))
-        }
+        Text(title, Modifier.weight(1f).padding(end = 16.dp), style = type(19, FontWeight.Bold))
         Toggle(checked, onChange)
     }
     HorizontalDivider(color = Ink.Raised, thickness = 2.dp)
 }
 
 @Composable
-private fun Choice(title: String, about: String, divider: Boolean = true, control: @Composable () -> Unit) {
+private fun Choice(title: String, divider: Boolean = true, control: @Composable () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp)) {
         Text(title, style = type(19, FontWeight.Bold))
-        Text(about, style = type(15, color = Ink.Dim))
         Spacer(Modifier.height(16.dp))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) { control() }
     }
@@ -214,19 +209,6 @@ fun AboutScreen(onBack: () -> Unit, onLicenses: () -> Unit) {
             Spacer(Modifier.height(14.dp))
             Text("xrnchips", style = type(28, FontWeight.Black))
             Text("Version ${BuildConfig.VERSION_NAME}", style = type(15, color = Ink.Dim))
-            Spacer(Modifier.height(22.dp))
-            Text(
-                "Keeps the stacks, blinds and pots of a home poker game, so the table only needs a deck of cards. " +
-                    "One phone is passed around or left in the middle; each player acts on their turn.",
-                style = type(16, color = Ink.Dim),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(14.dp))
-            Text(
-                "No ads, no accounts and no network access. Games are saved on this phone only.",
-                style = type(16, color = Ink.Dim),
-                textAlign = TextAlign.Center,
-            )
             Spacer(Modifier.height(26.dp))
             PillButton("Licenses", onLicenses, Modifier.fillMaxWidth(), icon = Icons.Filled.MenuBook, height = 60.dp)
             Spacer(Modifier.height(28.dp))

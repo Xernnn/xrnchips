@@ -386,7 +386,6 @@ fun ShowdownDialog(
             right = { IconTap(Icons.Outlined.Info, "Hand rankings", onInfo) },
         )
         Text("Showdown", style = type(30, FontWeight.ExtraBold))
-        Text(if (game.pots.size > 1) "Choose who wins each pot." else "Choose who wins the pot.", style = type(16, color = Ink.Dim))
         Spacer(Modifier.height(14.dp))
         Column(
             Modifier
@@ -522,7 +521,6 @@ fun RebuyDialog(game: GameState, canUndo: Boolean, onUndo: () -> Unit, onRebuy: 
     Modal {
         ModalBar(left = { IconTap(Icons.AutoMirrored.Filled.Undo, "Undo", onUndo, enabled = canUndo) })
         Text("Out of chips", style = type(30, FontWeight.ExtraBold))
-        Text("Buy back in, or leave the table.", style = type(16, color = Ink.Dim))
         game.players.filter { it.broke }.forEach { player ->
             key(player.seat) {
                 var chips by remember { mutableIntStateOf(buyIn) }
@@ -573,13 +571,6 @@ fun ResultsDialog(game: GameState, price: Int, onPrice: (Int) -> Unit, onBack: (
     Modal(onDismiss = onClose, scroll = false) {
         ModalBar(left = onBack?.let { { BackIcon(it) } }, right = { CloseIcon(onClose) })
         Text("Results", style = type(30, FontWeight.ExtraBold))
-        if (game.pot > 0) {
-            Text(
-                "The hand in play is not counted: chips in its pot are still their owners'.",
-                style = type(14, color = Ink.Dim),
-                textAlign = TextAlign.Center,
-            )
-        }
         Spacer(Modifier.height(12.dp))
         Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
             Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Ink.Black).padding(horizontal = 14.dp, vertical = 10.dp)) {
@@ -610,14 +601,7 @@ fun ResultsDialog(game: GameState, price: Int, onPrice: (Int) -> Unit, onBack: (
                 )
             }
             Spacer(Modifier.height(12.dp))
-            if (price <= 0) {
-                Text(
-                    "Enter what a starting stack costs to see who pays whom.",
-                    style = type(15, color = Ink.Dim),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
+            if (price > 0) {
                 val money = moneyResults(standings, price, stack)
                 val payments = settle(money)
                 if (payments.isEmpty()) {

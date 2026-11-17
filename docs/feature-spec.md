@@ -286,7 +286,7 @@ included.
 
 ## About
 
-The version, what the app is, and **Licenses**: the typeface and the open-source parts.
+The version and **Licenses**: the typeface and the open-source parts.
 
 ## Sound and vibration
 
