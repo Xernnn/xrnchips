@@ -89,8 +89,6 @@ fun StartScreen(onContinue: (() -> Unit)?, onPlay: () -> Unit, onLoad: () -> Uni
         val pop = remember { Animatable(0.7f) }
         LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow)) }
         AppMark(116.dp, Modifier.scale(pop.value))
-        Spacer(Modifier.height(20.dp))
-        Text("Poker night without the chips", style = type(16, color = Ink.Dim))
         Spacer(Modifier.weight(1f))
         if (onContinue != null) {
             PillButton("Continue", onContinue, Modifier.fillMaxWidth(), tone = Tone.ACCENT, icon = Icons.Filled.Replay, height = 60.dp)
