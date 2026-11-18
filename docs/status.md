@@ -4,12 +4,12 @@ Version 0.1.0, 6 November 2026.
 
 ## What has been tested
 
-**Unit tests** (`./gradlew :app:testDebugUnitTest`, 32 tests, all passing).
+**Unit tests** (`./gradlew :app:testDebugUnitTest`, 37 tests, all passing).
 
 - `EngineTest.sessionMatchesTheReference` replays an eight-hand session that was first played on
   the reference app (see below) with the same seats, stacks and moves. The stacks, bets, pots,
   turns, raise limits, shortcut amounts, blind levels and showdown lists it asserts were read off
-  that app's screen, except at the two points where this app now does something else on purpose,
+  that app's screen, except at the three points where this app now does something else on purpose,
   which the test marks. It covers antes, a re-raise, a split pot with an odd chip, a player
   leaving, three buy-ins, a four-way all-in with two side pots, a one-chip all-in whose unmatched
   chips come back, heads-up play, a short all-in raise, adding chips after a fold, three blind
@@ -17,8 +17,11 @@ Version 0.1.0, 6 November 2026.
 - The other engine tests cover the raise rule (a short all-in, several that add up, a short bet
   after checks), pot limit, the big blind ante with a stack too short for it, buying back in and
   leaving when broke, a returning player's account, an eight-handed button move, splitting, folded
-  chips in side pots, the minutes clock, the clock before the first deal, and blinds posted from a
-  stack too small for them.
+  chips in side pots, the minutes clock and time away from the app, the clock before the first deal,
+  blinds posted from a stack too small for them, and calls and raises capped at what the others can
+  match.
+- `StoreTest` covers reading the saved games off the opening thread, and saves and deletes made
+  before that read is done.
 - `LedgerTest` covers settling up: that the payments square everyone, that they are as few as
   possible in a case where pairing the biggest loser with the biggest winner is not, 300 random
   sets of results, and money that still adds up after rounding.
@@ -69,6 +72,9 @@ font with it. The differences:
 - The raise rule is the usual one: an all-in for less than a full raise does not change the
   minimum and does not let players who have already acted raise again. The reference treats it as
   a full raise on both counts.
+- Nobody is asked to call more, or offered a raise, beyond what someone else still in the hand
+  could put in. The reference asks for the call and offers the raise, and the chips come back as a
+  pot only their owner can win.
 - Antes go into the main pot as dead money. The reference counts them as part of each player's
   bet, which comes to the same thing while everyone posts the same ante.
 - Pot limit and the big blind ante are choices on the Play screen that the reference does not

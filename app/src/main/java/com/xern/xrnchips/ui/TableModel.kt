@@ -1,6 +1,7 @@
 package com.xern.xrnchips.ui
 
 import android.app.Application
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import com.xern.xrnchips.ChipsApp
 import com.xern.xrnchips.data.SavedGame
 import com.xern.xrnchips.data.Sfx
 import com.xern.xrnchips.domain.BlindLevel
+import com.xern.xrnchips.domain.ElapsedSeconds
 import com.xern.xrnchips.domain.GameSetup
 import com.xern.xrnchips.domain.GameState
 import com.xern.xrnchips.domain.Phase
@@ -64,10 +66,13 @@ class TableModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
+            // Counted in real time: the phone holds this loop while the app is left for another.
+            val elapsed = ElapsedSeconds(SystemClock.elapsedRealtime())
             while (true) {
                 delay(1000)
+                val seconds = elapsed.since(SystemClock.elapsedRealtime())
                 val now = game ?: continue
-                val next = now.tick()
+                val next = now.tick(seconds)
                 if (next !== now) game = next
             }
         }
