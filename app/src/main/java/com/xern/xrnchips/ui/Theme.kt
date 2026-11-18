@@ -13,9 +13,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.em
@@ -53,16 +55,19 @@ val felts = listOf(
 fun felt(index: Int): Felt = felts[index.mod(felts.size)]
 
 /**
- * MiSans Latin by Xiaomi, one unmodified file per weight. It runs heavier than its names, so Bold
- * draws Semibold and ExtraBold draws Bold.
+ * MiSans Latin by Xiaomi, unmodified files. It runs heavier than its names, so Bold draws Semibold
+ * and ExtraBold draws Bold. The two heaviest come from the variable cut at the static files' own
+ * weights (Bold 630, Heavy 700): the static Bold and Heavy draw "@" as "&", and a player's name
+ * is drawn ExtraBold. Variation settings need API 26, the app's minimum.
  */
+@OptIn(ExperimentalTextApi::class)
 val MiSans = FontFamily(
     Font(R.font.misans_regular, FontWeight.Normal),
     Font(R.font.misans_medium, FontWeight.Medium),
     Font(R.font.misans_demibold, FontWeight.SemiBold),
     Font(R.font.misans_semibold, FontWeight.Bold),
-    Font(R.font.misans_bold, FontWeight.ExtraBold),
-    Font(R.font.misans_heavy, FontWeight.Black),
+    Font(R.font.misans_vf, FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(630))),
+    Font(R.font.misans_vf, FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
 )
 
 /** Text in MiSans with room above and below, which Compose would otherwise trim. */
