@@ -16,7 +16,8 @@ Amounts are whole chips, shown with thousands separators (`1,037`).
 
 ## Start screen
 
-The icon, the name, and four buttons: **Play** (the Play screen), **Load**, **Settings**, **About**.
+The icon, which stands for the name, a tagline, and four buttons: **Play** (the Play screen), **Load**,
+**Settings**, **About**.
 While a game is waiting in the autosave there is a fifth on top, **Continue**, which goes straight
 back to its table.
 
@@ -286,7 +287,7 @@ included.
 
 ## About
 
-The version and **Licenses**: the typeface and the open-source parts.
+The icon, the version and **Licenses**: the typeface and the open-source parts.
 
 ## Sound and vibration
 

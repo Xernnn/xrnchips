@@ -4,7 +4,7 @@ Version 0.1.0, 6 November 2026.
 
 ## What has been tested
 
-**Unit tests** (`./gradlew :app:testDebugUnitTest`, 37 tests, all passing).
+**Unit tests** (`./gradlew :app:testDebugUnitTest`, 38 tests, all passing).
 
 - `EngineTest.sessionMatchesTheReference` replays an eight-hand session that was first played on
   the reference app (see below) with the same seats, stacks and moves. The stacks, bets, pots,
@@ -27,6 +27,8 @@ Version 0.1.0, 6 November 2026.
   sets of results, and money that still adds up after rounding.
 - `SetupTest` covers the Play screen's field rules, including what switching between hands and
   minutes does to the lengths.
+- `FontTest` reads every font the app ships and checks that none draws "@" with the "&" outline,
+  as MiSans Latin's static Bold and Heavy do; ExtraBold and Black come from the variable cut.
 
 **By hand on an emulator** (Android 15, 1080 x 2400) with the debug build: the same session through
 the real screens, plus the Play screen's fields and name dialog, every control of the raise dialog,
