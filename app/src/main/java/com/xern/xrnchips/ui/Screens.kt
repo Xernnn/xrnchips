@@ -48,6 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -64,10 +66,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** The app icon as a tile. The launcher layers keep their art in the middle two thirds, so they are drawn oversize and cropped. */
+/**
+ * The app icon as a tile, which stands for the app's name wherever the name would be a title. The
+ * launcher layers keep their art in the middle two thirds, so they are drawn oversize and cropped.
+ */
 @Composable
 fun AppMark(size: Dp, modifier: Modifier = Modifier) {
-    Box(modifier.size(size).clip(RoundedCornerShape(size * 0.24f)), contentAlignment = Alignment.Center) {
+    Box(modifier.size(size).clip(RoundedCornerShape(size * 0.24f)).semantics { contentDescription = "xrnchips" }, contentAlignment = Alignment.Center) {
         Image(painterResource(R.drawable.ic_launcher_background), contentDescription = null, modifier = Modifier.requiredSize(size * 1.5f))
         Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(size * 1.5f))
     }
@@ -85,7 +90,6 @@ fun StartScreen(onContinue: (() -> Unit)?, onPlay: () -> Unit, onLoad: () -> Uni
         LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow)) }
         AppMark(116.dp, Modifier.scale(pop.value))
         Spacer(Modifier.height(20.dp))
-        Text("xrnchips", style = type(40, FontWeight.Black))
         Text("Poker night without the chips", style = type(16, color = Ink.Dim))
         Spacer(Modifier.weight(1f))
         if (onContinue != null) {
@@ -207,7 +211,6 @@ fun AboutScreen(onBack: () -> Unit, onLicenses: () -> Unit) {
             Spacer(Modifier.height(24.dp))
             AppMark(88.dp)
             Spacer(Modifier.height(14.dp))
-            Text("xrnchips", style = type(28, FontWeight.Black))
             Text("Version ${BuildConfig.VERSION_NAME}", style = type(15, color = Ink.Dim))
             Spacer(Modifier.height(26.dp))
             PillButton("Licenses", onLicenses, Modifier.fillMaxWidth(), icon = Icons.Filled.MenuBook, height = 60.dp)
