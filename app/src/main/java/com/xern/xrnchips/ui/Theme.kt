@@ -35,7 +35,7 @@ object Ink {
     val White = Color(0xFFFFFFFF)
     val Dim = Color(0xFFA1A1AA)
     val Faint = Color(0xFF71717A)
-    val Felt = Color(0xFF146B4A)
+    val Felt = Color(0xFF006153)
     val Mint = Color(0xFF4ADE9C)
     val Amber = Color(0xFFFFB238)
     val Red = Color(0xFFFF5D52)
@@ -46,7 +46,7 @@ object Ink {
 class Felt(val name: String, val cloth: Color, val shade: Color)
 
 val felts = listOf(
-    Felt("Green", Color(0xFF146B4A), Color(0xFF0B3F2C)),
+    Felt("Green", Color(0xFF006153), Color(0xFF01362F)),
     Felt("Blue", Color(0xFF1F4F8C), Color(0xFF122E55)),
     Felt("Red", Color(0xFF8B2635), Color(0xFF511520)),
     Felt("Slate", Color(0xFF4B505A), Color(0xFF2A2D33)),
