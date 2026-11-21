@@ -5,7 +5,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M0,0 H108 V108 H0 Z" android:fillColor="#146B4A" />
+    <path android:pathData="M0,0 H108 V108 H0 Z" android:fillColor="#006153" />
     <group android:translateX="18" android:translateY="18"
         android:scaleX="0.72" android:scaleY="0.72">
         <group android:pivotX="110" android:pivotY="118"
