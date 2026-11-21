@@ -300,7 +300,7 @@ fun streetTitle(street: Street): String = when (street) {
 }
 
 @Composable
-private fun MenuButton(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun MenuButton(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val buzz = LocalBuzz.current
     val color = if (enabled) Ink.White else Ink.Faint
     Row(
@@ -329,7 +329,7 @@ private val betHeight = 24.dp
 private val dealerSize = 24.dp
 
 @Composable
-private fun Table(game: GameState, felt: Felt, inBlinds: Boolean, onClock: () -> Unit, modifier: Modifier = Modifier) {
+internal fun Table(game: GameState, felt: Felt, inBlinds: Boolean, onClock: () -> Unit, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp)) {
         val w = maxWidth
         val h = maxHeight
@@ -678,7 +678,7 @@ private fun Bet(amount: Int, toPot: IntOffset) {
 // ---- Acting ----
 
 @Composable
-private fun ActionBar(
+internal fun ActionBar(
     game: GameState,
     settings: Settings,
     enabled: Boolean,
