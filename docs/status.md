@@ -1,10 +1,10 @@
 # Status
 
-Version 0.1.3 (build 4), 19 November 2026.
+Version 0.5.0 (build 7). Unit tests last run on 27 November 2026.
 
 ## What has been tested
 
-**Unit tests** (`./gradlew :app:testDebugUnitTest`, 38 tests, all passing).
+**Unit tests** (`./gradlew :app:testDebugUnitTest`, 40 tests, all passing).
 
 - `EngineTest.sessionMatchesTheReference` replays an eight-hand session that was first played on
   the reference app (see below) with the same seats, stacks and moves. The stacks, bets, pots,

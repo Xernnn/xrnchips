@@ -8,6 +8,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -53,7 +54,12 @@ data class SavedGame(
  * saved games' on [disk]; writes go to [disk], a single background thread, each to a temporary file
  * that then replaces the old one.
  */
-class Store(private val dir: File, private val disk: Executor = Executors.newSingleThreadExecutor()) {
+class Store(
+    private val dir: File,
+    private val disk: Executor = Executors.newSingleThreadExecutor(),
+    /** Waits until the file's bytes are on the disk itself, not in the system's cache. */
+    private val sync: (FileOutputStream) -> Unit = { it.fd.sync() },
+) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val saveDir = File(dir, "saves").apply { mkdirs() }
 
@@ -72,7 +78,7 @@ class Store(private val dir: File, private val disk: Executor = Executors.newSin
     val saves: StateFlow<List<SavedGame>> = _saves
 
     init {
-        disk.execute { _saves.value = saveDir.listFiles().orEmpty().mapNotNull { read(it, SavedGame.serializer()) }.ordered() }
+        disk.execute { _saves.value = saveDir.listFiles().orEmpty().filter { it.name.endsWith(".json") }.mapNotNull { read(it, SavedGame.serializer()) }.ordered() }
     }
 
     fun updateSettings(change: (Settings) -> Settings) {
@@ -90,9 +96,10 @@ class Store(private val dir: File, private val disk: Executor = Executors.newSin
     fun autosave(state: GameState, history: List<GameState>) =
         put(SavedGame(AUTOSAVE, System.currentTimeMillis(), auto = true, state = state, history = history.takeLast(KEPT_HISTORY)))
 
-    fun save(state: GameState, history: List<GameState>) {
+    /** [done] is told on [disk] whether the game reached the disk, so "saved" is said only once it has. */
+    fun save(state: GameState, history: List<GameState>, done: (Boolean) -> Unit = {}) {
         val now = System.currentTimeMillis()
-        put(SavedGame("save-$now", now, state = state, history = history.takeLast(KEPT_HISTORY)))
+        put(SavedGame("save-$now", now, state = state, history = history.takeLast(KEPT_HISTORY)), done)
     }
 
     fun delete(id: String) = disk.execute {
@@ -105,11 +112,11 @@ class Store(private val dir: File, private val disk: Executor = Executors.newSin
         saveDir.listFiles()?.forEach { it.delete() }
     }
 
-    private fun put(game: SavedGame) {
+    private fun put(game: SavedGame, done: (Boolean) -> Unit = {}) {
         val text = json.encodeToString(SavedGame.serializer(), game)
         disk.execute {
             _saves.value = (_saves.value.filter { it.id != game.id } + game).ordered()
-            replace(File(saveDir, "${game.id}.json"), text)
+            done(replace(File(saveDir, "${game.id}.json"), text))
         }
     }
 
@@ -124,15 +131,27 @@ class Store(private val dir: File, private val disk: Executor = Executors.newSin
         disk.execute { replace(file, text) }
     }
 
-    /** On [disk] only. */
-    private fun replace(file: File, text: String) {
-        runCatching {
-            val temp = File(file.parentFile, file.name + ".tmp")
-            temp.writeText(text)
+    /**
+     * On [disk] only. Whether [text] is on the disk: written to a temporary file and synced before
+     * it replaces [file]. Unsynced, a power cut soon after could leave the renamed file empty, and
+     * a save that won't parse reads as nothing.
+     */
+    private fun replace(file: File, text: String): Boolean {
+        val temp = File(file.parentFile, file.name + ".tmp")
+        return runCatching {
+            writeSynced(temp, text)
             if (!temp.renameTo(file)) {
-                file.writeText(text)
+                writeSynced(file, text)
                 temp.delete()
             }
+        }.onFailure { temp.delete() }.isSuccess
+    }
+
+    private fun writeSynced(file: File, text: String) {
+        FileOutputStream(file).use { out ->
+            out.write(text.toByteArray(Charsets.UTF_8))
+            out.flush()
+            sync(out)
         }
     }
 

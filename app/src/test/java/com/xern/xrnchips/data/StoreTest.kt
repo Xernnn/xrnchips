@@ -4,9 +4,13 @@ import com.xern.xrnchips.domain.GameSetup
 import com.xern.xrnchips.domain.SetupPlayer
 import com.xern.xrnchips.domain.newGame
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.io.IOException
 import java.util.concurrent.Executor
 
 class StoreTest {
@@ -24,6 +28,36 @@ class StoreTest {
     }
 
     private val game = newGame(GameSetup(players = listOf(SetupPlayer(0, "Ann"), SetupPlayer(4, "Bob"))))
+
+    @Test
+    fun aSaveIsOnTheDiskBeforeItIsReportedSaved() {
+        val disk = Later()
+        val synced = mutableListOf<String>()
+        val store = Store(folder.root, disk, sync = { synced += "synced" })
+        var said: Boolean? = null
+        store.save(game, emptyList()) { ok ->
+            // "Game saved." came as the save was queued: a power cut then could leave an empty file.
+            assertEquals(listOf("synced"), synced)
+            said = ok
+        }
+        assertNull(said)
+        disk.runAll()
+        assertEquals(true, said)
+        val files = File(folder.root, "saves").listFiles().orEmpty().map { it.name }
+        assertEquals(1, files.size)
+        assertTrue(files.single().endsWith(".json"))
+    }
+
+    @Test
+    fun aSaveThatCantReachTheDiskIsNotReportedSavedAndLeavesNothingHalfWritten() {
+        val disk = Later()
+        val store = Store(folder.root, disk, sync = { throw IOException("no space left") })
+        var said: Boolean? = null
+        store.save(game, emptyList()) { said = it }
+        disk.runAll()
+        assertEquals(false, said)
+        assertEquals(emptyList<String>(), File(folder.root, "saves").listFiles().orEmpty().map { it.name })
+    }
 
     @Test
     fun savedGamesAreReadOffTheThreadThatOpensTheStore() {
