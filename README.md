@@ -11,7 +11,7 @@ around or left in the middle and each player acts on their turn.
 It never sees the cards: at a showdown the table tells it who won each pot. No ads, no accounts, no
 network access. Games are saved on the phone.
 
-Kotlin and Jetpack Compose. Minimum Android 8.0. Version 0.1.3 (build 4). MIT licence.
+Kotlin and Jetpack Compose. Minimum Android 8.0. Version 0.5.0 (build 7). MIT licence.
 
 ## What it does
 
@@ -60,7 +60,7 @@ phone size.
 ## Build and test
 
 ```sh
-./gradlew :app:testDebugUnitTest      # 38 unit tests
+./gradlew :app:testDebugUnitTest      # 40 unit tests
 ./gradlew :app:assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ./gradlew :app:assembleRelease        # app/build/outputs/apk/release/app-release.apk
