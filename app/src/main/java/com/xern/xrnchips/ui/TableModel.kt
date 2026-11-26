@@ -135,9 +135,11 @@ class TableModel(app: Application) : AndroidViewModel(app) {
         settle()
     }
 
-    fun save(): Boolean {
+    /** [done] is told, on the main thread, whether the game reached the disk. False when there's no game. */
+    fun save(done: (Boolean) -> Unit): Boolean {
         val now = game ?: return false
-        store.save(now, history)
+        val main = android.os.Handler(android.os.Looper.getMainLooper())
+        store.save(now, history) { ok -> main.post { done(ok) } }
         return true
     }
 

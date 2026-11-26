@@ -211,7 +211,7 @@ fun GameScreen(model: TableModel, settings: Settings, onSettings: () -> Unit, on
                 onManage = { sheet = Sheet.Manage },
                 onResults = { sheet = Sheet.Results(Sheet.Menu) },
                 onSave = {
-                    if (model.save()) toast("Game saved.")
+                    model.save { saved -> toast(if (saved) "Game saved." else "Not saved.") }
                     sheet = null
                 },
                 onSettings = {
